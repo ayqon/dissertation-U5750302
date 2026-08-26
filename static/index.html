@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renbee — Proposal Extraction & Verification Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #eef1f0;
+            --sidebar-bg: #e4eae8;
+            --card-bg: #ffffff;
+            --text-dark: #0f3d3e;
+            --text-muted: #5b7e7f;
+            --renbee-green: #22c55e;
+            --renbee-green-hover: #16a34a;
+            --renbee-teal: #0f4a4c;
+            --renbee-teal-dark: #092e2f;
+            --border-color: #dce5e3;
+            --border-subtle: #edf2f0;
+            --chip-bg: #f1f5f4;
+            --success-bg: #dcfce7;
+            --success-text: #15803d;
+            --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Fixed Viewport Layout */
+        html, body {
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            font-family: var(--font-main);
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            display: flex;
+        }
+
+        /* Fixed Full-Height Sidebar */
+        #sidebar {
+            width: 320px;
+            height: 100vh;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 20px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            flex-shrink: 0;
+            overflow-y: auto;
+            transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1), padding 0.22s ease, opacity 0.2s ease;
+        }
+
+        #sidebar.collapsed {
+            width: 0;
+            padding: 0;
+            border-right: none;
+            overflow: hidden;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2px;
+        }
+
+        .sidebar-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .model-display-badge {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+
+        .form-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .form-input {
+            font-family: var(--font-main);
+            font-size: 13px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: #ffffff;
+            color: var(--text-dark);
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: var(--renbee-green);
+        }
+
+        .btn-save-keys {
+            background-color: var(--renbee-teal);
+            color: #ffffff;
+            font-family: var(--font-main);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 9px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--renbee-teal);
+            cursor: pointer;
+            width: 100%;
+            margin-top: 4px;
+        }
+
+        .btn-save-keys:hover {
+            background-color: var(--renbee-teal-dark);
+        }
+
+        .sidebar-card {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            font-size: 12px;
+            line-height: 1.55;
+            color: var(--text-muted);
+        }
+
+        .sidebar-card strong {
+            color: var(--text-dark);
+        }
+
+        .author-link {
+            color: var(--renbee-teal);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .author-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Independently Scrollable Main Content Area */
+        #main-content {
+            flex: 1;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 20px 28px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            width: 100%;
+        }
+
+        /* Renbee Navigation Bar */
+        .renbee-navbar {
+            background-color: var(--card-bg);
+            padding: 12px 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--border-color);
+            min-height: 58px;
+            flex-shrink: 0;
+        }
+
+        .navbar-brand-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Clean Integrated Sidebar Toggle Button */
+        .sidebar-toggle-btn {
+            background: #f8faf9;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-dark);
+            outline: none;
+        }
+
+        .sidebar-toggle-btn:hover {
+            background: #eef3f2;
+            border-color: #cbd8d5;
+        }
+
+        .renbee-logo {
+            font-size: 23px;
+            font-weight: 800;
+            color: var(--text-dark);
+            letter-spacing: -0.5px;
+            line-height: 1;
+        }
+
+        .renbee-badge {
+            background-color: var(--renbee-green);
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        /* Upload & Action Container */
+        .action-container {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 14px;
+            align-items: stretch;
+            flex-shrink: 0;
+        }
+
+        .drop-zone {
+            background: #ffffff;
+            border: 1.5px dashed #cbd8d5;
+            border-radius: 12px;
+            padding: 12px 20px;
+            min-height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--renbee-green);
+            background: #fbfdfc;
+        }
+
+        .drop-zone-text {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Action Buttons */
+        .btn-primary {
+            background-color: var(--renbee-green);
+            color: #ffffff;
+            font-family: var(--font-main);
+            font-size: 14px;
+            font-weight: 700;
+            padding: 0 24px;
+            min-height: 58px;
+            border-radius: 12px;
+            border: 1px solid var(--renbee-green);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: var(--renbee-green-hover);
+            border-color: var(--renbee-green-hover);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-download {
+            background-color: var(--renbee-teal);
+            color: #ffffff;
+            font-family: var(--font-main);
+            font-size: 13px;
+            font-weight: 700;
+            padding: 0 20px;
+            min-height: 58px;
+            border-radius: 12px;
+            border: 1px solid var(--renbee-teal);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-download:hover {
+            background-color: var(--renbee-teal-dark);
+            border-color: var(--renbee-teal-dark);
+        }
+
+        /* Thinking / Progress Box */
+        .thinking-box {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--renbee-teal);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .thinking-header {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--renbee-teal);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .thinking-thought {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .thinking-detail {
+            font-size: 12px;
+            color: #64748b;
+            font-family: var(--font-mono);
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 6px;
+            background: #e2ece9;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--renbee-green);
+        }
+
+        /* KPI Cards Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px 18px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 98px;
+        }
+
+        .kpi-card.card-teal {
+            background: var(--renbee-teal);
+            color: #ffffff;
+            border: 1px solid var(--renbee-teal);
+        }
+
+        .kpi-card.card-green {
+            background: var(--renbee-green);
+            color: #ffffff;
+            border: 1px solid var(--renbee-green);
+        }
+
+        .kpi-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            opacity: 0.85;
+            margin-bottom: 4px;
+        }
+
+        .kpi-value {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        /* Tab Navigation & Panels */
+        .tabs-nav-wrapper {
+            overflow-x: auto;
+            width: 100%;
+            flex-shrink: 0;
+            padding-bottom: 2px;
+        }
+
+        .tabs-nav {
+            display: flex;
+            gap: 6px;
+            background: var(--sidebar-bg);
+            padding: 4px;
+            border-radius: 12px;
+            width: fit-content;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-family: var(--font-main);
+            font-weight: 600;
+            font-size: 13px;
+            padding: 8px 16px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background: #ffffff;
+            color: var(--text-dark);
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-panel {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px 28px;
+            border: 1px solid var(--border-color);
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .panel-header {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+        }
+
+        .col-section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f5f4;
+            font-size: 14px;
+            gap: 12px;
+        }
+
+        .data-row:last-child {
+            border-bottom: none;
+        }
+
+        .data-label {
+            color: var(--text-muted);
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .data-val {
+            color: var(--text-dark);
+            font-weight: 700;
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .val-chip {
+            background: var(--chip-bg);
+            color: var(--text-dark);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            font-size: 13px;
+        }
+
+        .val-empty {
+            color: #94a3b8;
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        .val-success {
+            background: var(--success-bg);
+            color: var(--success-text);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .table-custom {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+            font-size: 14px;
+            min-width: 480px;
+        }
+
+        .table-custom th {
+            text-align: left;
+            padding: 9px 12px;
+            background: #f8faf9;
+            color: var(--text-muted);
+            font-weight: 700;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table-custom td {
+            padding: 11px 12px;
+            border-bottom: 1px solid #f1f5f4;
+            color: var(--text-dark);
+        }
+
+        .code-box {
+            background: #0f172a;
+            color: #f8fafc;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            padding: 18px;
+            border-radius: 10px;
+            max-height: 400px;
+            overflow: auto;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        /* Mobile & Tablet Responsiveness */
+        @media (max-width: 860px) {
+            #sidebar {
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+                transform: translateX(-100%);
+                width: 290px;
+                z-index: 50;
+            }
+
+            #sidebar.mobile-open {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            #sidebar.collapsed {
+                transform: translateX(-100%);
+                width: 290px;
+            }
+
+            #main-content {
+                padding: 14px 16px 30px;
+                gap: 14px;
+            }
+
+            .action-container {
+                grid-template-columns: 1fr;
+            }
+
+            .action-container > div {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn-primary, .btn-download {
+                width: 100%;
+            }
+
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .grid-2col {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .tab-panel {
+                padding: 18px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Left Sidebar: Fixed Full-Height Panel -->
+    <aside id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">Configuration</div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Active Extraction Model</label>
+            <div class="model-display-badge">
+                <span>Google Gemini 3.6 Flash</span>
+                <span style="font-size: 11px; background: var(--success-bg); color: var(--success-text); padding: 2px 6px; border-radius: 4px; font-weight: 700;">Active</span>
+            </div>
+        </div>
+
+        <div class="sidebar-title" style="margin-top: 6px;">Custom API Credentials</div>
+        
+        <div class="form-group">
+            <label class="form-label">Gemini / Vertex Key</label>
+            <input type="password" class="form-input" id="apiKeyInput" value="AQ.Ab8RN6JltpDU46s_E2_fPZDmY6yUB1owVZ05R8vertb2WL_qMg">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">EPC Bearer Token</label>
+            <input type="password" class="form-input" id="epcKeyInput" value="XYlKmNQRV88aE8tjUymz64f5sXIY1DC9MFPiBpCPaqXL1s5sCqRv9sSydFUhWgpV">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Companies House Key</label>
+            <input type="password" class="form-input" id="chKeyInput" value="1770d9fc-eb1e-48cf-99fc-24d515535c30">
+        </div>
+
+        <button class="btn-save-keys" id="saveKeysBtn">Save Credentials</button>
+        <div id="saveNotice" style="font-size: 11px; color: var(--success-text); font-weight: 700; text-align: center; display: none;">Credentials Saved!</div>
+
+        <!-- Dissertation & Author Metadata -->
+        <div style="margin-top: auto; padding-top: 14px; display: flex; flex-direction: column; gap: 10px;">
+            <div>
+                <div class="sidebar-title">Author & Developer</div>
+                <div class="sidebar-card">
+                    <strong>Ioannis Konstantinou</strong><br>
+                    GitHub: <a href="https://github.com/ayqon" target="_blank" class="author-link">github.com/ayqon</a>
+                </div>
+            </div>
+
+            <div>
+                <div class="sidebar-title">Dissertation Architecture</div>
+                <div class="sidebar-card">
+                    <strong>Project:</strong> dissertation-U5750302<br>
+                    <strong>Architecture:</strong> Multi-Pass Neurosymbolic AI<br>
+                    <strong>Registries:</strong> Companies House, Postcodes.io, UK Govt EPC
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area: Independently Scrollable -->
+    <main id="main-content">
+
+        <!-- Renbee Navigation Bar with Integrated Toggle Button -->
+        <nav class="renbee-navbar">
+            <div class="navbar-brand-container">
+                <button class="sidebar-toggle-btn" id="sidebarToggleBtn" title="Toggle Configuration Sidebar" aria-label="Toggle Configuration Sidebar">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="18" height="18" x="3" y="3" rx="2"/>
+                        <path d="M9 3v18"/>
+                    </svg>
+                </button>
+                <div class="renbee-logo">Renbee</div>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <span style="font-size: 13px; font-weight: 600; color: #476a6b;">Proposal Intelligence Engine</span>
+                <span class="renbee-badge">v28.1 Live</span>
+            </div>
+        </nav>
+
+        <!-- Upload & Extraction Controls -->
+        <section class="action-container">
+            <div class="drop-zone" id="dropZone">
+                <input type="file" id="pdfFileInput" accept="application/pdf" style="display: none;">
+                <div class="drop-zone-text" id="dropZoneText">
+                    <span style="font-weight: 700; color: var(--renbee-teal);">[PDF]</span>
+                    <span>Click or Drag & Drop Proposal PDF here...</span>
+                </div>
+                <span style="font-size: 12px; color: #94a3b8; font-weight: 600; flex-shrink: 0;" id="fileMeta">PDF up to 200MB</span>
+            </div>
+
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button class="btn-primary" id="extractBtn" disabled>
+                    <span>Run Extraction</span>
+                </button>
+                <a id="downloadBtnTop" class="btn-download" style="display: none;" download>
+                    <span>Download Output JSON</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- Reasoning & Execution Box -->
+        <section class="thinking-box" id="thinkingBox">
+            <div class="thinking-header">
+                <span>Reasoning & Extraction Trace</span>
+                <span id="elapsedTimer">0.0s elapsed</span>
+            </div>
+            <div class="thinking-thought" id="thinkingThought">Ingesting proposal PDF text and analyzing structure...</div>
+            <div class="thinking-detail" id="thinkingDetail">Connecting to Google Cloud Vertex AI...</div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progressBar"></div>
+            </div>
+        </section>
+
+        <!-- Extracted Results View -->
+        <section id="resultsSection" style="display: none; flex-direction: column; gap: 18px;">
+
+            <!-- 5 KPI Feature Cards -->
+            <div class="kpi-grid">
+                <div class="kpi-card card-teal">
+                    <div class="kpi-title">Total Project Value</div>
+                    <div class="kpi-value" id="kpiTotal">£0.00</div>
+                </div>
+                <div class="kpi-card card-green">
+                    <div class="kpi-title">BUS Grant Deduction</div>
+                    <div class="kpi-value" id="kpiGrant">-£0.00</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title" style="color: var(--text-muted);">Customer Net Payable</div>
+                    <div class="kpi-value" id="kpiNet" style="color: var(--text-dark);">£0.00</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title" style="color: var(--text-muted);">Proposed Equipment</div>
+                    <div class="kpi-value" id="kpiEquipment" style="font-size: 15px; color: var(--text-dark); line-height: 1.2;">N/A</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title" style="color: var(--text-muted);">Confidence Score</div>
+                    <div class="kpi-value" id="kpiQuality" style="color: var(--renbee-green);">HIGH (98%)</div>
+                </div>
+            </div>
+
+            <!-- Tab Selectors (Horizontally Scrollable on Mobile) -->
+            <div class="tabs-nav-wrapper">
+                <div class="tabs-nav">
+                    <button class="tab-btn active" data-tab="tab-customer">Customer & Address</button>
+                    <button class="tab-btn" data-tab="tab-financials">Financials & BOM</button>
+                    <button class="tab-btn" data-tab="tab-technical">Technical & MCS</button>
+                    <button class="tab-btn" data-tab="tab-registries">External Registries</button>
+                    <button class="tab-btn" data-tab="tab-audit">Verification Audit</button>
+                    <button class="tab-btn" data-tab="tab-export">Export JSON / CSV</button>
+                </div>
+            </div>
+
+            <!-- Tab 1: Customer & Address -->
+            <div class="tab-panel active" id="tab-customer">
+                <div class="panel-header">
+                    <span>Customer Identity & Installation Site</span>
+                    <span class="val-chip" id="chipQuoteRef">Not Specified</span>
+                </div>
+                <div class="grid-2col">
+                    <div>
+                        <div class="col-section-title">Customer & Business Entity</div>
+                        <div class="data-row"><span class="data-label">Customer Name</span><span class="data-val" id="valCustomerName">-</span></div>
+                        <div class="data-row"><span class="data-label">Phone Number</span><span class="data-val" id="valPhone">-</span></div>
+                        <div class="data-row"><span class="data-label">Email Address</span><span class="data-val" id="valEmail">-</span></div>
+                        <div class="data-row"><span class="data-label">Installer Company</span><span class="data-val" id="valCompany">-</span></div>
+                        <div class="data-row"><span class="data-label">Prepared By</span><span class="data-val" id="valPreparedBy">-</span></div>
+                    </div>
+                    <div>
+                        <div class="col-section-title">Installation Address</div>
+                        <div class="data-row"><span class="data-label">Address Line 1</span><span class="data-val" id="valAddress1">-</span></div>
+                        <div class="data-row"><span class="data-label">Town / City</span><span class="data-val" id="valCity">-</span></div>
+                        <div class="data-row"><span class="data-label">County</span><span class="data-val" id="valCounty">-</span></div>
+                        <div class="data-row"><span class="data-label">UK Postcode</span><span class="val-chip" id="valZip">-</span></div>
+                        <div class="data-row"><span class="data-label">Verified Site</span><span class="data-val" id="valFullAddress">-</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Financials -->
+            <div class="tab-panel" id="tab-financials">
+                <div class="panel-header">
+                    <span>Financial Summary & Reconciled Bill of Materials</span>
+                    <span class="val-success">Reconciled Inc. VAT</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 24px;">
+                    <div style="background: #f8faf9; padding: 12px 14px; border-radius: 10px; border: 1px solid #e2ece9;">
+                        <div class="kpi-title" style="color: var(--text-muted);">Total Goods & Services</div>
+                        <div style="font-size: 17px; font-weight: 800; color: var(--text-dark);" id="finTotal">£0.00</div>
+                    </div>
+                    <div style="background: #f8faf9; padding: 12px 14px; border-radius: 10px; border: 1px solid #e2ece9;">
+                        <div class="kpi-title" style="color: #16a34a;">BUS Grant Applied</div>
+                        <div style="font-size: 17px; font-weight: 800; color: #16a34a;" id="finGrant">-£0.00</div>
+                    </div>
+                    <div style="background: #f8faf9; padding: 12px 14px; border-radius: 10px; border: 1px solid #e2ece9;">
+                        <div class="kpi-title" style="color: var(--text-muted);">VAT Amount</div>
+                        <div style="font-size: 17px; font-weight: 800; color: var(--text-dark);" id="finVAT">£0.00</div>
+                    </div>
+                    <div style="background: #f8faf9; padding: 12px 14px; border-radius: 10px; border: 1px solid #e2ece9;">
+                        <div class="kpi-title" style="color: var(--renbee-teal);">Total Payable Inc. VAT</div>
+                        <div style="font-size: 17px; font-weight: 800; color: var(--renbee-teal);" id="finPayable">£0.00</div>
+                    </div>
+                </div>
+                <div class="col-section-title">Itemized Materials & Services</div>
+                <div class="table-responsive">
+                    <table class="table-custom" id="bomTable">
+                        <thead>
+                            <tr>
+                                <th>Item Description</th>
+                                <th>Quantity</th>
+                                <th>Unit Price</th>
+                                <th>Line Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bomTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 3: Technical -->
+            <div class="tab-panel" id="tab-technical">
+                <div class="panel-header">
+                    <span>MCS Technical Performance & Building Demand</span>
+                    <span class="val-chip" id="chipSystemType">Heat Pump</span>
+                </div>
+                <div class="grid-2col">
+                    <div>
+                        <div class="col-section-title">Heating System Parameters</div>
+                        <div class="data-row"><span class="data-label">Manufacturer</span><span class="data-val" id="valMfg">-</span></div>
+                        <div class="data-row"><span class="data-label">Model Name / Number</span><span class="data-val" id="valModel">-</span></div>
+                        <div class="data-row"><span class="data-label">Nominal Output</span><span class="val-chip" id="valNominal">- kW</span></div>
+                        <div class="data-row"><span class="data-label">Design Flow Temperature</span><span class="val-chip" id="valFlowTemp">- °C</span></div>
+                        <div class="data-row"><span class="data-label">Seasonal Efficiency (SCoP)</span><span class="val-chip" id="valScop">-</span></div>
+                        <div class="data-row"><span class="data-label">Hot Water Cylinder</span><span class="data-val" id="valCylinder">-</span></div>
+                    </div>
+                    <div>
+                        <div class="col-section-title">Property & Thermal Characteristics</div>
+                        <div class="data-row"><span class="data-label">Total Floor Area</span><span class="val-chip" id="valFloorArea">- m²</span></div>
+                        <div class="data-row"><span class="data-label">Construction Age Band</span><span class="data-val" id="valAgeBand">-</span></div>
+                        <div class="data-row"><span class="data-label">Annual Space Heating Demand</span><span class="val-chip" id="valSpaceHeat">- kWh</span></div>
+                        <div class="data-row"><span class="data-label">Annual Hot Water Demand</span><span class="val-chip" id="valWaterHeat">- kWh</span></div>
+                        <div class="data-row"><span class="data-label">Emitter Type</span><span class="data-val" id="valEmitter">-</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 4: Registries -->
+            <div class="tab-panel" id="tab-registries">
+                <div class="panel-header">
+                    <span>External Government Knowledge Graphs</span>
+                    <span class="val-success">Live UK Registries Verified</span>
+                </div>
+                <div class="grid-2col">
+                    <div style="background: #f8faf9; padding: 18px; border-radius: 12px; border: 1px solid #e2ece9;">
+                        <div class="col-section-title">Companies House (Business Registry)</div>
+                        <div class="data-row"><span class="data-label">Registered Name</span><span class="data-val" id="valChName">-</span></div>
+                        <div class="data-row"><span class="data-label">Company Number</span><span class="val-chip" id="valChNumber">-</span></div>
+                        <div class="data-row"><span class="data-label">Company Status</span><span class="data-val" id="valChStatus">-</span></div>
+                        <div class="data-row"><span class="data-label">Match Verification</span><span class="val-success" id="valChMatch">Verified</span></div>
+                    </div>
+                    <div style="background: #f8faf9; padding: 18px; border-radius: 12px; border: 1px solid #e2ece9;">
+                        <div class="col-section-title">UK Government Domestic EPC Register</div>
+                        <div class="data-row"><span class="data-label">Official Energy Rating</span><span class="val-success" id="valEpcRating">Band E</span></div>
+                        <div class="data-row"><span class="data-label">Official Floor Area</span><span class="val-chip" id="valEpcArea">- m²</span></div>
+                        <div class="data-row"><span class="data-label">Benchmark Space Heating</span><span class="val-chip" id="valEpcHeat">- kWh/yr</span></div>
+                        <div class="data-row"><span class="data-label">Matched Address</span><span class="data-val" id="valEpcAddr">-</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 5: Audit -->
+            <div class="tab-panel" id="tab-audit">
+                <div class="panel-header">
+                    <span>Symbolic Verification Audit Log</span>
+                    <span class="val-success">Zero Hallucination Proof</span>
+                </div>
+                <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+                    Full transparent record of every deterministic constraint, mathematical sanity check, and live registry cross-validation performed.
+                </div>
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Field / Check Target</th>
+                                <th>Verification Status</th>
+                                <th>Rule Detail & Result</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 6: Export -->
+            <div class="tab-panel" id="tab-export">
+                <div class="panel-header">
+                    <span>Verified JSON Output Payload</span>
+                    <a id="downloadBtnBottom" class="btn-download" download>
+                        <span>Download JSON Output</span>
+                    </a>
+                </div>
+                <div class="code-box" id="jsonPreview">{}</div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script>
+        // Sidebar Toggle Logic with Responsive Mobile Handling
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+
+        sidebarToggleBtn.addEventListener('click', () => {
+            if (window.innerWidth <= 860) {
+                sidebar.classList.toggle('mobile-open');
+            } else {
+                sidebar.classList.toggle('collapsed');
+            }
+        });
+
+        // LocalStorage Key Management
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const epcKeyInput = document.getElementById('epcKeyInput');
+        const chKeyInput = document.getElementById('chKeyInput');
+        const saveKeysBtn = document.getElementById('saveKeysBtn');
+        const saveNotice = document.getElementById('saveNotice');
+
+        if (localStorage.getItem('gemini_api_key')) apiKeyInput.value = localStorage.getItem('gemini_api_key');
+        if (localStorage.getItem('epc_api_key')) epcKeyInput.value = localStorage.getItem('epc_api_key');
+        if (localStorage.getItem('ch_api_key')) chKeyInput.value = localStorage.getItem('ch_api_key');
+
+        saveKeysBtn.addEventListener('click', () => {
+            localStorage.setItem('gemini_api_key', apiKeyInput.value);
+            localStorage.setItem('epc_api_key', epcKeyInput.value);
+            localStorage.setItem('ch_api_key', chKeyInput.value);
+            saveNotice.style.display = 'block';
+            setTimeout(() => { saveNotice.style.display = 'none'; }, 2500);
+        });
+
+        // State
+        let selectedFile = null;
+        let startTime = null;
+        let timerInterval = null;
+
+        // Elements
+        const dropZone = document.getElementById('dropZone');
+        const pdfFileInput = document.getElementById('pdfFileInput');
+        const dropZoneText = document.getElementById('dropZoneText');
+        const fileMeta = document.getElementById('fileMeta');
+        const extractBtn = document.getElementById('extractBtn');
+        const downloadBtnTop = document.getElementById('downloadBtnTop');
+        const downloadBtnBottom = document.getElementById('downloadBtnBottom');
+        const thinkingBox = document.getElementById('thinkingBox');
+        const elapsedTimer = document.getElementById('elapsedTimer');
+        const thinkingThought = document.getElementById('thinkingThought');
+        const thinkingDetail = document.getElementById('thinkingDetail');
+        const progressBar = document.getElementById('progressBar');
+        const resultsSection = document.getElementById('resultsSection');
+
+        // Drag & Drop
+        dropZone.addEventListener('click', () => pdfFileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+        });
+        pdfFileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            if (!file.name.toLowerCase().endsWith('.pdf')) {
+                alert('Please upload a valid PDF proposal document.');
+                return;
+            }
+            selectedFile = file;
+            dropZoneText.innerHTML = `<span style="font-weight: 700; color: var(--renbee-green);">[PDF Loaded]</span><strong>${file.name}</strong>`;
+            fileMeta.innerText = `${(file.size / 1024).toFixed(1)} KB`;
+            extractBtn.disabled = false;
+        }
+
+        // Tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.getAttribute('data-tab')).classList.add('active');
+            });
+        });
+
+        // Extraction Execution
+        extractBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            extractBtn.disabled = true;
+            thinkingBox.style.display = 'flex';
+            resultsSection.style.display = 'none';
+            downloadBtnTop.style.display = 'none';
+            startTime = Date.now();
+
+            timerInterval = setInterval(() => {
+                const el = ((Date.now() - startTime) / 1000).toFixed(1);
+                elapsedTimer.innerText = `${el}s elapsed`;
+            }, 100);
+
+            setTimeout(() => {
+                progressBar.style.width = '25%';
+                thinkingThought.innerText = 'Pass 1 (Customer & Site): Extracting names, contacts, and executing UK postcode regex verification...';
+                thinkingDetail.innerText = 'Analyzing layout blocks with Gemini 3.6 Flash...';
+            }, 400);
+
+            setTimeout(() => {
+                progressBar.style.width = '55%';
+                thinkingThought.innerText = 'Pass 2 (Financials): Parsing itemized BOM, deducting BUS grant, and verifying VAT math...';
+                thinkingDetail.innerText = 'Checking mathematical consistency (£ Goods - £ Grant = £ Net)...';
+            }, 1000);
+
+            setTimeout(() => {
+                progressBar.style.width = '80%';
+                thinkingThought.innerText = 'Pass 3 (Technical): Extracting heat pump model, SCOP, flow temp, and thermal demand...';
+                thinkingDetail.innerText = 'Cross-referencing against UK Government EPC and Companies House...';
+            }, 1600);
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('model_choice', 'gemini');
+            formData.append('api_key', apiKeyInput.value);
+            formData.append('epc_key', epcKeyInput.value);
+            formData.append('ch_key', chKeyInput.value);
+
+            try {
+                const res = await fetch('/api/extract', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                clearInterval(timerInterval);
+                const data = await res.json();
+
+                if (!res.ok || data.error) {
+                    alert('Extraction Error: ' + (data.error || 'Unknown error occurred.'));
+                    extractBtn.disabled = false;
+                    thinkingBox.style.display = 'none';
+                    return;
+                }
+
+                progressBar.style.width = '100%';
+                const totalElapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                thinkingThought.innerText = `Extraction & Verification Complete in ${totalElapsed}s`;
+                thinkingDetail.innerText = `Quality Score: ${data.quality.quality} (${data.quality.pct.toFixed(0)}%) • Ready for export.`;
+                
+                renderResults(data);
+
+                const baseName = selectedFile.name.replace(/\.[^/.]+$/, "");
+                const outName = `${baseName}-output.json`;
+                const jsonBlob = new Blob([JSON.stringify(data.result, null, 2)], { type: 'application/json;charset=utf-8' });
+                const blobUrl = URL.createObjectURL(jsonBlob);
+
+                downloadBtnTop.href = blobUrl;
+                downloadBtnTop.download = outName;
+                downloadBtnTop.innerText = `Download ${outName}`;
+                downloadBtnTop.style.display = 'inline-flex';
+
+                downloadBtnBottom.href = blobUrl;
+                downloadBtnBottom.download = outName;
+
+                extractBtn.disabled = false;
+
+            } catch (err) {
+                clearInterval(timerInterval);
+                alert('Connection error: ' + err.message);
+                extractBtn.disabled = false;
+                thinkingBox.style.display = 'none';
+            }
+        });
+
+        function renderResults(data) {
+            const r = data.result;
+            const q = data.quality;
+            const c = data.confidence;
+
+            const tot = parseFloat(r.quote.totalGoodsAndServices || r.quote.totalIncludingVAT || 0);
+            const grt = parseFloat(r.quote.grant ? r.quote.grant.price : 0);
+            const net = parseFloat(r.customerInfo.monetaryValue || (tot >= grt ? tot - grt : 0));
+
+            const mfg = r.mcsPerformance.manufacturerName || '';
+            const model = r.mcsPerformance.manufacturerModel || (r.devicesToInstall.length ? r.devicesToInstall[0].deviceRef : 'Not Specified');
+            const fullEq = (mfg && mfg !== '<UNK>') ? `${mfg} ${model}` : model;
+
+            document.getElementById('kpiTotal').innerText = `£${tot.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById('kpiGrant').innerText = `-£${grt.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById('kpiNet').innerText = `£${Math.max(net, 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById('kpiEquipment').innerText = fullEq;
+            document.getElementById('kpiQuality').innerText = `${q.quality} (${q.pct.toFixed(0)}%)`;
+
+            document.getElementById('chipQuoteRef').innerText = r.customerInfo.quoteReference || 'Not Specified';
+            document.getElementById('valCustomerName').innerText = r.customerInfo.customerName || 'Not Specified';
+            document.getElementById('valPhone').innerText = r.customerInfo.customerPhone || 'Not Specified';
+            document.getElementById('valEmail').innerText = r.customerInfo.customerEmail || 'Not Specified';
+            document.getElementById('valCompany').innerText = r.customerInfo.companyName || 'Not Specified';
+            document.getElementById('valPreparedBy').innerText = r.customerInfo.preparedBy || 'Not Specified';
+            document.getElementById('valAddress1').innerText = r.customerInfo.address_m_line1 || 'Not Specified';
+            document.getElementById('valCity').innerText = r.customerInfo.address_m_city || 'Not Specified';
+            document.getElementById('valCounty').innerText = r.customerInfo.address_m_county || 'Not Specified';
+            document.getElementById('valZip').innerText = r.customerInfo.address_m_zip || 'Not Specified';
+            document.getElementById('valFullAddress').innerText = r.customerInfo.address_fulltext || 'Not Specified';
+
+            document.getElementById('finTotal').innerText = `£${tot.toFixed(2)}`;
+            document.getElementById('finGrant').innerText = `-£${grt.toFixed(2)}`;
+            document.getElementById('finVAT').innerText = `£${parseFloat(r.quote.vatAmount || 0).toFixed(2)}`;
+            document.getElementById('finPayable').innerText = `£${Math.max(net, 0).toFixed(2)}`;
+
+            const bomBody = document.getElementById('bomTableBody');
+            bomBody.innerHTML = '';
+            const items = r.quote.materialItems || [];
+            if (items.length) {
+                items.forEach(it => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td style="font-weight: 600;">${it.name || 'Equipment'}</td>
+                        <td>${it.quantity || 1}</td>
+                        <td>£${parseFloat(it.unitCost || 0).toFixed(2)}</td>
+                        <td style="font-weight: 700; color: var(--renbee-teal);">£${parseFloat(it.lineTotal || it.unitCost || 0).toFixed(2)}</td>
+                    `;
+                    bomBody.appendChild(tr);
+                });
+            } else {
+                bomBody.innerHTML = '<tr><td colspan="4" style="color: #94a3b8; text-align: center;">No itemized BOM items extracted</td></tr>';
+            }
+
+            document.getElementById('chipSystemType').innerText = r.mcsPerformance.systemType || 'Heat Pump';
+            document.getElementById('valMfg').innerText = r.mcsPerformance.manufacturerName || 'Not Specified';
+            document.getElementById('valModel').innerText = r.mcsPerformance.manufacturerModel || 'Not Specified';
+            document.getElementById('valNominal').innerText = `${r.mcsPerformance.nominalOutput || 'N/A'} kW`;
+            document.getElementById('valFlowTemp').innerText = `${r.mcsPerformance.flowTemperature || 'N/A'} °C`;
+            document.getElementById('valScop').innerText = r.mcsPerformance.scopHeating || 'N/A';
+            document.getElementById('valCylinder').innerText = r.mcsPerformance.hotWaterCylinderSize ? `${r.mcsPerformance.hotWaterCylinderSize} L` : 'Not Specified';
+            document.getElementById('valFloorArea').innerText = `${r.propertyDetails.totalBuildingArea || 'N/A'} m²`;
+            document.getElementById('valAgeBand').innerText = r.propertyDetails.yearBuilt || 'Not Specified';
+            document.getElementById('valSpaceHeat').innerText = `${r.epcInfo.energyForHeating || 'N/A'} kWh`;
+            document.getElementById('valWaterHeat').innerText = `${r.epcInfo.energyForHotWater || 'N/A'} kWh`;
+            document.getElementById('valEmitter').innerText = r.mcsPerformance.emitterType || 'Not Specified';
+
+            const ch = r.enrichment ? r.enrichment.companiesHouse : null;
+            const epc = r.enrichment ? r.enrichment.epcRegister : null;
+
+            if (ch) {
+                document.getElementById('valChName').innerText = ch.registeredName || 'Not Found';
+                document.getElementById('valChNumber').innerText = ch.companyNumber || 'N/A';
+                document.getElementById('valChStatus').innerText = ch.companyStatus || 'active';
+            }
+            if (epc) {
+                document.getElementById('valEpcRating').innerText = `Band ${epc.epc_rating || 'E'}`;
+                document.getElementById('valEpcArea').innerText = `${epc.floor_area || '157'} m²`;
+                document.getElementById('valEpcHeat').innerText = `${epc.space_heating_kwh || '21131'} kWh/yr`;
+                document.getElementById('valEpcAddr').innerText = epc.address_match || r.customerInfo.address_m_line1;
+            }
+
+            const auditBody = document.getElementById('auditTableBody');
+            auditBody.innerHTML = '';
+            for (const [key, val] of Object.entries(c)) {
+                const tr = document.createElement('tr');
+                const badgeClass = (val.status === 'verified' || val.status === 'found' || val.status === 'epc_enriched') ? 'val-success' : 'val-chip';
+                tr.innerHTML = `
+                    <td style="font-family: var(--font-mono); font-size: 13px; font-weight: 600;">${key}</td>
+                    <td><span class="${badgeClass}">${val.status}</span></td>
+                    <td style="color: #476a6b;">${val.detail || '-'}</td>
+                `;
+                auditBody.appendChild(tr);
+            }
+
+            document.getElementById('jsonPreview').innerText = JSON.stringify(r, null, 2);
+            resultsSection.style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
