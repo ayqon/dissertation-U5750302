@@ -4,6 +4,23 @@
 **Project:** `dissertation-U5750302`  
 **Architecture:** Multi-Pass Neurosymbolic AI Extraction & Cross-Verification Pipeline  
 **Active Model:** Google Gemini 3.6 Flash (Google AI Studio API)  
+**Live Production URL:** [https://renbee-extractor-730963128390.europe-west2.run.app](https://renbee-extractor-730963128390.europe-west2.run.app)
+
+---
+
+> ### ⚠️ Note on ENA (Energy Networks Association) Device Register Integration
+> 
+> * **Portal Migration & Scraping Deprecation:**  
+>   During the final evaluation cycle, the Energy Networks Association (ENA) updated their Connect Direct equipment database portal with dynamic session handling and automated bot protections. Consequently, programmatic headless browser scraping (Selenium) is no longer a viable, stable approach for querying device registrations.
+> 
+> * **Official Solution & Academic Scope:**  
+>   The legitimate, enterprise-grade way to integrate with the ENA database is through their **official REST API**, which requires formal organizational registration, vetting, and API key provisioning (a process currently requested and pending organizational review).
+> 
+> * **Implementation Status in this Submission:**  
+>   ENA registry cross-matching was **not part of the original formal research objectives or methodology defined in the dissertation proposal**; it was explored as an experimental industry add-on requested by company stakeholders. To guarantee 100% deterministic, high-speed execution and eliminate external browser dependencies for examiners, the Selenium prototype (Step 6e) is safely **commented out**.
+> 
+> * **Ready for Activation:**  
+>   The pipeline hooks and schema fields (`enaRegistrationNumber`, `enaMatchScore`, `enaProductName`) are fully structured in code and ready to activate as soon as the organizational API key is supplied.
 
 ---
 
