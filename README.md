@@ -57,20 +57,43 @@ Unlike basic single-pass LLM prompts, this system implements a **multi-pass neur
 
 ---
 
-## 3. Required API Keys & Credentials
+## 3. Required API Keys & Step-by-Step Acquisition Links
 
-To run the pipeline locally or in production, configure the following credentials:
+To run the pipeline with your own credentials, configure the following external API keys:
 
-| Service | Environment Variable | Purpose | How to Obtain |
+| Service | Environment Variable | Purpose | Direct Registration Link |
 | :--- | :--- | :--- | :--- |
-| **Google Gemini API** | `GEMINI_API_KEY` / `GOOGLE_API_KEY` | Powers semantic extraction passes | [Google AI Studio](https://aistudio.google.com/) |
-| **UK Govt EPC Register** | `EPC_API_KEY` | Official Domestic EPC certificate lookup | [Get Energy Performance Data](https://get-energy-performance-data.communities.gov.uk/) |
-| **Companies House** | `COMPANIES_HOUSE_API_KEY` | Live installer business registration check | [Companies House Developer Hub](https://developer.company-information.service.gov.uk/) |
+| **Google Gemini API** | `GEMINI_API_KEY` / `GOOGLE_API_KEY` | Powers semantic extraction passes (Passes 1, 2, and 3) | [Google AI Studio Console](https://aistudio.google.com/) |
+| **UK Govt EPC Register** | `EPC_API_KEY` | Official UK Domestic Energy Performance Certificate lookup | [UK Government EPC Register Developer Portal](https://api.get-energy-performance-data.communities.gov.uk/) |
+| **Companies House** | `COMPANIES_HOUSE_API_KEY` | Official UK Government business status & company number lookup | [Companies House Developer Hub](https://developer.company-information.service.gov.uk/) |
 
-> **Academic Evaluation & Testing Notice:**  
-> The author is fully aware that embedding or pre-populating live API keys in code/documentation is contrary to production security best practices. However, pre-configured working API keys (Google Gemini 3.6 Flash, UK Government EPC Register, and Companies House) are intentionally provided in this repository and live demonstration deployment solely to facilitate immediate, frictionless review, testing, and grading by dissertation examiners and assessors without requiring them to register for separate UK government developer accounts. All credentials will be rotated and revoked upon completion of the examination period.
+---
 
-> **Note:** The UI also includes a **"Save Credentials"** button in the left sidebar that allows users to override and save their own custom API keys directly in browser `localStorage`.
+### 🔑 How to Obtain Each API Key:
+
+1. **Google Gemini API Key**:
+   * Visit [Google AI Studio](https://aistudio.google.com/).
+   * Sign in with your Google account and click **"Get API key"** -> **"Create API key"**.
+   * Copy the generated key and assign it to `GEMINI_API_KEY` (Free tier provides generous limits for development and research).
+
+2. **UK Government EPC Register Bearer Token**:
+   * Visit the [UK Government Open Data Communities Register](https://api.get-energy-performance-data.communities.gov.uk/).
+   * Register with your email address to generate an instant Bearer token.
+   * Copy the Bearer Token and assign it to `EPC_API_KEY`.
+
+3. **UK Companies House API Key**:
+   * Visit the [Companies House Developer Hub](https://developer.company-information.service.gov.uk/).
+   * Create a free developer account and navigate to **"Manage Applications"** -> **"Create an application"**.
+   * Select **REST API Service**, create an API key, and assign it to `COMPANIES_HOUSE_API_KEY`.
+
+---
+
+> 📧 **Direct Evaluation Access & Author Contact:**  
+> If examiners, reviewers, or evaluators wish to test and run the exact codebase immediately without creating external UK Government and AI developer accounts, you are welcome to contact the author directly to request pre-authenticated evaluation credentials:  
+> **Contact Email:** [`Ioannis.Konstantinou@warwick.ac.uk`](mailto:Ioannis.Konstantinou@warwick.ac.uk)
+
+> **Note on Web UI Overrides:**  
+> The web interface also includes a **"Save Credentials"** button in the left sidebar that allows users to override and save their own custom API keys directly into browser `localStorage`.
 
 ---
 
