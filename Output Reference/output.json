@@ -1,0 +1,64 @@
+{
+    // customerInfo is the information about the homeowner (the beneficiary of the installation)
+    customerInfo: {
+        companyName : "",
+        customerName:  "",
+        customerPhone:  "",
+        customerEmail:  "",
+        address_m_city:  "",
+        address_m_line1: "",
+        address_m_line2: "",
+        address_m_zip:  "",
+        address_m_county: "",
+        address_m_country:  "",
+        address_fulltext:  "",
+        monetaryValue: "", // this is the value of the installation, the price the homeowner will pay for the installation
+    },
+    // these are details about the quote that the homeowner has received from the installer, containing pricing details of the installation
+    quote : {
+        materialItems :[
+            // each item is an object with the following properties
+            {
+                name: "", // the name of the item, e.g. "Sonnen Core 10 battery"
+                unitCost: "", // the price of the item in GBP, e.g. 5000
+                quantity: "", // the quantity of the item, e.g. 1
+            }
+        ],
+        labor : {
+            name: "", // the name of the labor, e.g. "Installation", or the name of the person doing the installation
+            totalLaborCost: "", // the total cost of the labor in GBP, e.g. 1000
+            totalHours: "", // the total number of hours of labor, e.g. 10
+            hourCost: "", // the cost per hour of labor in GBP, e.g. 100
+        },
+        additionalItems: [
+            // each additional item is an object with the following properties
+            {
+                name: "", // the name of the additional item, e.g. "Scaffold"
+                description: "", // the description of the additional item, e.g. "Scaffold for installation"
+                cost: "", // the cost of the additional item in GBP, e.g. 200
+            }
+        ],
+        grant:{
+            name: "", // the name of the grant, e.g. "Green Homes Grant"
+            details: "", // Enter how this project is eligible
+            price: "", // the grant value in GBP, e.g. 1000
+        }
+    },
+    // this is the list of the main devices will be installed at the property, such as battery, solar PV, heat pump, etc.
+    devicesToInstall: [
+        // each device is an object with the following properties
+        {
+            deviceType:"", //One of "Battery", "Solar PV", "V2G Inverter", "Heat Pump", "EV charge point (AC current)", "EV charge point (DC current)"
+            isEnaRegistered:"",// whether the device is registered with the ENA. One of "Yes", "No"
+            manufacturer: "", // the manufacturer of the device, e.g. "SolarEdge" or "Sonnen"
+            deviceRef : "", // the reference Number or model of the device, e.g. "SE3000H" or "Core 10"
+            targetInstallDate: "", // the target installation date of the device, e.g. "2024-04-01"
+            phaseCode: "", // the phase code of the device, e.g. "1" for Single Phase or "3"  for Three Phase
+            energyStorageCapacity: "", // the energy storage capacity of the device in kWh, e.g. 10 for a Sonnen Core 10 battery
+            powerFactor: "", // the power factor of the device, e.g. 0.8 for a SolarEdge inverter (between 0 and 1)
+        }
+    ]
+
+
+
+}
