@@ -50,7 +50,10 @@ To run the pipeline locally or in production, configure the following credential
 | **UK Govt EPC Register** | `EPC_API_KEY` | Official Domestic EPC certificate lookup | [Get Energy Performance Data](https://get-energy-performance-data.communities.gov.uk/) |
 | **Companies House** | `COMPANIES_HOUSE_API_KEY` | Live installer business registration check | [Companies House Developer Hub](https://developer.company-information.service.gov.uk/) |
 
-> **Note:** The UI includes a **"Save Credentials"** button in the left sidebar that saves your API keys directly in browser `localStorage` for convenience.
+> **Academic Evaluation & Testing Notice:**  
+> The author is fully aware that embedding or pre-populating live API keys in code/documentation is contrary to production security best practices. However, pre-configured working API keys (Google Gemini 3.6 Flash, UK Government EPC Register, and Companies House) are intentionally provided in this repository and live demonstration deployment solely to facilitate immediate, frictionless review, testing, and grading by dissertation examiners and assessors without requiring them to register for separate UK government developer accounts. All credentials will be rotated and revoked upon completion of the examination period.
+
+> **Note:** The UI also includes a **"Save Credentials"** button in the left sidebar that allows users to override and save their own custom API keys directly in browser `localStorage`.
 
 ---
 
