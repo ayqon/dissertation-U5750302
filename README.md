@@ -3,7 +3,7 @@
 **Author & Developer:** Ioannis Konstantinou ([github.com/ayqon](https://github.com/ayqon))  
 **Project:** `dissertation-U5750302`  
 **Architecture:** Multi-Pass Neurosymbolic AI Extraction & Cross-Verification Pipeline  
-**Active Model:** Google Gemini 3.6 Flash (Vertex AI / Cloud)  
+**Active Model:** Google Gemini 3.6 Flash (Google AI Studio API)  
 
 ---
 
@@ -46,7 +46,7 @@ To run the pipeline locally or in production, configure the following credential
 
 | Service | Environment Variable | Purpose | How to Obtain |
 | :--- | :--- | :--- | :--- |
-| **Google Vertex / Gemini** | `VERTEX_API_KEY` / `GEMINI_API_KEY` | Powers semantic extraction passes | [Google AI Studio](https://aistudio.google.com/) |
+| **Google Gemini API** | `GEMINI_API_KEY` / `GOOGLE_API_KEY` | Powers semantic extraction passes | [Google AI Studio](https://aistudio.google.com/) |
 | **UK Govt EPC Register** | `EPC_API_KEY` | Official Domestic EPC certificate lookup | [Get Energy Performance Data](https://get-energy-performance-data.communities.gov.uk/) |
 | **Companies House** | `COMPANIES_HOUSE_API_KEY` | Live installer business registration check | [Companies House Developer Hub](https://developer.company-information.service.gov.uk/) |
 
@@ -94,7 +94,7 @@ Run the following commands in Cloud Shell:
 unzip -o gcp_deploy.zip -d renbee-app && cd renbee-app
 
 # 2. Set active project
-gcloud config set project dissertation-U5750302
+gcloud config set project dissertation-u5750302
 
 # 3. Build & Deploy to Google Cloud Run
 gcloud run deploy renbee-extractor \
@@ -104,7 +104,7 @@ gcloud run deploy renbee-extractor \
   --allow-unauthenticated \
   --memory 2Gi \
   --cpu 2 \
-  --set-env-vars="VERTEX_API_KEY=AQ.Ab8RN6JltpDU46s_E2_fPZDmY6yUB1owVZ05R8vertb2WL_qMg,EPC_API_KEY=XYlKmNQRV88aE8tjUymz64f5sXIY1DC9MFPiBpCPaqXL1s5sCqRv9sSydFUhWgpV,COMPANIES_HOUSE_API_KEY=1770d9fc-eb1e-48cf-99fc-24d515535c30"
+  --set-env-vars="GEMINI_API_KEY=AQ.Ab8RN6JltpDU46s_E2_fPZDmY6yUB1owVZ05R8vertb2WL_qMg,EPC_API_KEY=XYlKmNQRV88aE8tjUymz64f5sXIY1DC9MFPiBpCPaqXL1s5sCqRv9sSydFUhWgpV,COMPANIES_HOUSE_API_KEY=1770d9fc-eb1e-48cf-99fc-24d515535c30"
 ```
 
 Once deployment completes, Cloud Run outputs your live public HTTPS URL:

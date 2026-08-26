@@ -186,19 +186,19 @@ def extract_text_from_pdf(pdf_source):
 
 def call_llm(prompt, system, model_choice='gemini', api_key=None, schema=None):
     """
-    Routes LLM call to Google Gemini (Vertex AI / Cloud) or local Ollama.
+    Routes LLM call to Google Gemini 3.6 Flash (Google AI Studio API) or local Ollama.
     """
     if model_choice == 'gemini':
         import google.generativeai as genai
         key = (
             api_key 
-            or os.environ.get('VERTEX_API_KEY') 
             or os.environ.get('GEMINI_API_KEY') 
-            or os.environ.get('GOOGLE_API_KEY') 
+            or os.environ.get('GOOGLE_API_KEY')
+            or os.environ.get('VERTEX_API_KEY') 
             or 'AQ.Ab8RN6JltpDU46s_E2_fPZDmY6yUB1owVZ05R8vertb2WL_qMg'
         )
         if not key:
-            raise ValueError("No Gemini / Vertex API key provided. Please configure VERTEX_API_KEY or GEMINI_API_KEY.")
+            raise ValueError("No Gemini API key provided. Please configure GEMINI_API_KEY or GOOGLE_API_KEY.")
         
         genai.configure(api_key=key)
         
