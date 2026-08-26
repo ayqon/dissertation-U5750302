@@ -182,60 +182,73 @@ When you click **Download `<filename>-output.json`**, the payload conforms to th
 ```json
 {
   "customerInfo": {
-    "customerName": "John Doe",
-    "customerPhone": "07123456789",
-    "customerEmail": "customer@example.co.uk",
-    "companyName": "Green Energy Heating Ltd",
-    "preparedBy": "Alex Smith",
-    "quoteReference": "QUO-98214-B",
-    "address_m_line1": "39 St. Floras Road",
-    "address_m_city": "Littlehampton",
-    "address_m_county": "West Sussex",
-    "address_m_zip": "BN17 6BD",
-    "address_fulltext": "39 St. Floras Road, Littlehampton, West Sussex, BN17 6BD",
-    "monetaryValue": 4500.0
+    "customerName": "...",
+    "customerPhone": "...",
+    "customerEmail": "...",
+    "companyName": "...",
+    "preparedBy": "...",
+    "quoteReference": "...",
+    "address_m_line1": "...",
+    "address_m_city": "...",
+    "address_m_county": "...",
+    "address_m_zip": "...",
+    "address_fulltext": "...",
+    "monetaryValue": 0.0
   },
   "quote": {
-    "totalGoodsAndServices": 12000.0,
+    "totalGoodsAndServices": 0.0,
     "vatAmount": 0.0,
-    "totalIncludingVAT": 12000.0,
-    "grant": { "name": "BUS", "price": 7500.0 },
+    "totalIncludingVAT": 0.0,
+    "grant": {
+      "name": "BUS",
+      "price": 0.0
+    },
     "materialItems": [
-      { "name": "Daikin Altherma 3 H HT 8kW Heat Pump", "quantity": 1, "unitCost": 6500.0, "lineTotal": 6500.0 },
-      { "name": "200L High-Gain Hot Water Cylinder", "quantity": 1, "unitCost": 1500.0, "lineTotal": 1500.0 },
-      { "name": "Full Electrical & Mechanical Installation", "quantity": 1, "unitCost": 4000.0, "lineTotal": 4000.0 }
+      {
+        "name": "...",
+        "quantity": 1,
+        "unitCost": 0.0,
+        "lineTotal": 0.0
+      }
     ]
   },
   "mcsPerformance": {
     "systemType": "Heat Pump",
-    "manufacturerName": "Daikin",
-    "manufacturerModel": "Altherma 3 H HT",
-    "nominalOutput": 8.0,
-    "flowTemperature": 45,
-    "scopHeating": 3.8,
-    "hotWaterCylinderSize": 200,
-    "emitterType": "Radiators"
+    "manufacturerName": "...",
+    "manufacturerModel": "...",
+    "nominalOutput": 0.0,
+    "flowTemperature": 0,
+    "scopHeating": 0.0,
+    "hotWaterCylinderSize": 0,
+    "emitterType": "..."
   },
   "propertyDetails": {
-    "totalBuildingArea": 157.0,
-    "yearBuilt": "1980-1990"
+    "totalBuildingArea": 0.0,
+    "yearBuilt": "..."
   },
   "epcInfo": {
-    "energyForHeating": 21131,
-    "energyForHotWater": 2500
+    "energyForHeating": 0,
+    "energyForHotWater": 0
   },
+  "devicesToInstall": [
+    {
+      "deviceType": "Heat Pump",
+      "manufacturer": "...",
+      "deviceRef": "..."
+    }
+  ],
   "enrichment": {
     "companiesHouse": {
-      "companyNumber": "08923412",
-      "registeredName": "GREEN ENERGY HEATING LTD",
+      "companyNumber": "...",
+      "registeredName": "...",
       "companyStatus": "active",
       "matchType": "Direct"
     },
     "epcRegister": {
-      "epc_rating": "E",
-      "floor_area": "157",
-      "space_heating_kwh": "21131",
-      "address_match": "39 St. Floras Road"
+      "epc_rating": "...",
+      "floor_area": "...",
+      "space_heating_kwh": "...",
+      "address_match": "..."
     }
   }
 }
