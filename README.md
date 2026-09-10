@@ -64,7 +64,7 @@ To run the pipeline with your own credentials, configure the following external 
 | Service | Environment Variable | Purpose | Direct Registration Link |
 | :--- | :--- | :--- | :--- |
 | **Google Gemini API** | `GEMINI_API_KEY` / `GOOGLE_API_KEY` | Powers semantic extraction passes (Passes 1, 2, and 3) | [Google AI Studio Console](https://aistudio.google.com/) |
-| **UK Govt EPC Register** | `EPC_API_KEY` | Official UK Domestic Energy Performance Certificate lookup | [UK Government EPC Register Developer Portal](https://api.get-energy-performance-data.communities.gov.uk/) |
+| **UK Govt EPC Register** | `EPC_API_KEY` | Official UK Domestic Energy Performance Certificate lookup | [UK Government Open Data EPC Portal](https://epc.opendatacommunities.org/docs/api) |
 | **Companies House** | `COMPANIES_HOUSE_API_KEY` | Official UK Government business status & company number lookup | [Companies House Developer Hub](https://developer.company-information.service.gov.uk/) |
 
 ---
@@ -77,8 +77,8 @@ To run the pipeline with your own credentials, configure the following external 
    * Copy the generated key and assign it to `GEMINI_API_KEY` (Free tier provides generous limits for development and research).
 
 2. **UK Government EPC Register Bearer Token**:
-   * Visit the [UK Government Open Data Communities Register](https://api.get-energy-performance-data.communities.gov.uk/).
-   * Register with your email address to generate an instant Bearer token.
+   * Visit the [UK Government Open Data Communities EPC Portal](https://epc.opendatacommunities.org/docs/api) (or [Register / Sign In](https://epc.opendatacommunities.org/login)).
+   * Register for free with your email address to generate an instant Bearer token.
    * Copy the Bearer Token and assign it to `EPC_API_KEY`.
 
 3. **UK Companies House API Key**:
@@ -147,7 +147,7 @@ gcloud run deploy renbee-extractor \
   --allow-unauthenticated \
   --memory 2Gi \
   --cpu 2 \
-  --set-env-vars="GEMINI_API_KEY=AQ.Ab8RN6JltpDU46s_E2_fPZDmY6yUB1owVZ05R8vertb2WL_qMg,EPC_API_KEY=XYlKmNQRV88aE8tjUymz64f5sXIY1DC9MFPiBpCPaqXL1s5sCqRv9sSydFUhWgpV,COMPANIES_HOUSE_API_KEY=1770d9fc-eb1e-48cf-99fc-24d515535c30"
+  --set-env-vars="GEMINI_API_KEY=YOUR_GEMINI_API_KEY,EPC_API_KEY=YOUR_EPC_API_KEY,COMPANIES_HOUSE_API_KEY=YOUR_COMPANIES_HOUSE_KEY"
 ```
 
 Once deployment completes, Cloud Run outputs your live public HTTPS URL:

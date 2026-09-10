@@ -14,6 +14,22 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+# Load .env variables if present
+_env_path = os.path.join(os.path.dirname(__file__), '.env')
+if os.path.exists(_env_path):
+    try:
+        with open(_env_path, 'r', encoding='utf-8') as _f:
+            for _line in _f:
+                _line = _line.strip()
+                if _line and not _line.startswith('#') and '=' in _line:
+                    _k, _v = _line.split('=', 1)
+                    _k = _k.strip()
+                    _v = _v.strip().strip("'\"")
+                    if _k not in os.environ and _v:
+                        os.environ[_k] = _v
+    except Exception:
+        pass
+
 # Standard Schemas
 PASS1_SCHEMA = {
     'customerInfo': {
@@ -194,8 +210,7 @@ def call_llm(prompt, system, model_choice='gemini', api_key=None, schema=None):
             api_key 
             or os.environ.get('GEMINI_API_KEY') 
             or os.environ.get('GOOGLE_API_KEY')
-            or os.environ.get('VERTEX_API_KEY') 
-            or 'AQ.Ab8RN6JltpDU46s_E2_fPZDmY6yUB1owVZ05R8vertb2WL_qMg'
+            or os.environ.get('VERTEX_API_KEY')
         )
         if not key:
             raise ValueError("No Gemini API key provided. Please configure GEMINI_API_KEY or GOOGLE_API_KEY.")
@@ -313,8 +328,7 @@ def enrich_companies_house(result, confidence, api_key=None):
         return
     ch_key = (
         api_key 
-        or os.environ.get('COMPANIES_HOUSE_API_KEY') 
-        or '1770d9fc-eb1e-48cf-99fc-24d515535c30'
+        or os.environ.get('COMPANIES_HOUSE_API_KEY')
     )
     try:
         headers = {}
@@ -367,7 +381,10 @@ def enrich_epc(result, confidence, epc_email=None, epc_key=None):
         confidence['enrichment.epc'] = {'status': 'skipped', 'detail': 'No valid postcode'}
         return
     
-    token = epc_key or os.environ.get('EPC_API_KEY') or 'XYlKmNQRV88aE8tjUymz64f5sXIY1DC9MFPiBpCPaqXL1s5sCqRv9sSydFUhWgpV'
+    token = epc_key or os.environ.get('EPC_API_KEY')
+    if not token:
+        confidence['enrichment.epc'] = {'status': 'skipped', 'detail': 'EPC API key required'}
+        return
     headers = {'Authorization': f'Bearer {token}', 'Accept': 'application/json'}
     pc_clean = postcode.replace(' ', '+')
     
