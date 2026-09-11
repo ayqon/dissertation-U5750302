@@ -1,9 +1,7 @@
 # Renbee — Renewable Energy Proposal Extractor & Intelligence Engine
 
-**Author & Developer:** Ioannis Konstantinou ([github.com/ayqon](https://github.com/ayqon))  
-**Project:** `dissertation-U5750302`  
 **Architecture:** Multi-Pass Neurosymbolic AI Extraction & Cross-Verification Pipeline  
-**Active Model:** Google Gemini 3.6 Flash (Google AI Studio API)  
+**Active Model:** Google Gemini 2.5 Flash / 1.5 Flash (Google AI Studio API)  
 **Live Production URL:** [https://renbee-extractor-730963128390.europe-west2.run.app](https://renbee-extractor-730963128390.europe-west2.run.app)
 
 ---
@@ -11,13 +9,13 @@
 > ### ⚠️ Note on ENA (Energy Networks Association) Device Register Integration
 > 
 > * **Portal Migration & Scraping Deprecation:**  
->   During the final evaluation cycle, the Energy Networks Association (ENA) updated their Connect Direct equipment database portal with dynamic session handling and automated bot protections. Consequently, programmatic headless browser scraping (Selenium) is no longer a viable, stable approach for querying device registrations.
+>   The Energy Networks Association (ENA) updated their Connect Direct equipment database portal with dynamic session handling and automated bot protections. Consequently, programmatic headless browser scraping (Selenium) is no longer a viable, stable approach for querying device registrations.
 > 
-> * **Official Solution & Academic Scope:**  
->   The legitimate, enterprise-grade way to integrate with the ENA database is through their **official REST API**, which requires formal organizational registration, vetting, and API key provisioning (a process currently requested and pending organizational review).
+> * **Official Integration:**  
+>   The enterprise-grade way to integrate with the ENA database is through their **official REST API**, which requires formal organizational registration, vetting, and API key provisioning.
 > 
-> * **Implementation Status in this Submission:**  
->   ENA registry cross-matching was **not part of the original formal research objectives or methodology defined in the dissertation proposal**; it was explored as an experimental industry add-on requested by company stakeholders. To guarantee 100% deterministic, high-speed execution and eliminate external browser dependencies for examiners, the Selenium prototype (Step 6e) is safely **commented out**.
+> * **Implementation Status:**  
+>   To guarantee 100% deterministic, high-speed execution and eliminate external browser dependencies in production/CI environments, the Selenium prototype (Step 6e) is disabled in favor of the direct API hooks.
 > 
 > * **Ready for Activation:**  
 >   The pipeline hooks and schema fields (`enaRegistrationNumber`, `enaMatchScore`, `enaProductName`) are fully structured in code and ready to activate as soon as the organizational API key is supplied.
@@ -46,7 +44,7 @@ Unlike basic single-pass LLM prompts, this system implements a **multi-pass neur
 ├── extractor_engine.py       # Core multi-pass extraction pipeline
 ├── static/
 │   └── index.html           # Bespoke Renbee SPA frontend (HTML5/CSS3/JS)
-├── Renewable_Energy_...ipynb # Academic Jupyter Notebook (identical pipeline)
+├── Renewable_Energy_...ipynb # Reference Jupyter Notebook (pipeline prototyping)
 ├── requirements.txt         # Minimal Python dependencies
 ├── Dockerfile               # Production container configuration for Cloud Run
 ├── .dockerignore            # Container build ignore rules
@@ -74,7 +72,7 @@ To run the pipeline with your own credentials, configure the following external 
 1. **Google Gemini API Key**:
    * Visit [Google AI Studio](https://aistudio.google.com/).
    * Sign in with your Google account and click **"Get API key"** -> **"Create API key"**.
-   * Copy the generated key and assign it to `GEMINI_API_KEY` (Free tier provides generous limits for development and research).
+   * Copy the generated key and assign it to `GEMINI_API_KEY` (Free tier provides generous limits for development and testing).
 
 2. **UK Government EPC Register Bearer Token**:
    * Visit the [UK Government Open Data Communities EPC Portal](https://epc.opendatacommunities.org/docs/api) (or [Register / Sign In](https://epc.opendatacommunities.org/login)).
@@ -87,10 +85,6 @@ To run the pipeline with your own credentials, configure the following external 
    * Select **REST API Service**, create an API key, and assign it to `COMPANIES_HOUSE_API_KEY`.
 
 ---
-
-> 📧 **Direct Evaluation Access & Author Contact:**  
-> If examiners, reviewers, or evaluators wish to test and run the exact codebase immediately without creating external UK Government and AI developer accounts, you are welcome to contact the author directly to request pre-authenticated evaluation credentials:  
-> **Contact Email:** [`Ioannis.Konstantinou@warwick.ac.uk`](mailto:Ioannis.Konstantinou@warwick.ac.uk)
 
 > **Note on Web UI Overrides:**  
 > The web interface also includes a **"Save Credentials"** button in the left sidebar that allows users to override and save their own custom API keys directly into browser `localStorage`.
@@ -137,7 +131,7 @@ Run the following commands in Cloud Shell:
 unzip -o gcp_deploy.zip -d renbee-app && cd renbee-app
 
 # 2. Set active project
-gcloud config set project dissertation-u5750302
+gcloud config set project renbee-docparse
 
 # 3. Build & Deploy to Google Cloud Run
 gcloud run deploy renbee-extractor \
@@ -258,7 +252,6 @@ When you click **Download `<filename>-output.json`**, the payload conforms to th
 
 ## 8. License & Credits
 
-* Developed for Academic Dissertation research (`dissertation-U5750302`).
-* Industry Partner: **Renbee**
-* Author: **Ioannis Konstantinou** ([github.com/ayqon](https://github.com/ayqon)).
+* Maintained by **Renbee Tech**
+* Project: **warwick_docparse**
 
