@@ -22,18 +22,79 @@
 
 ---
 
-## 1. Overview & Neurosymbolic Architecture
+## 1. Overview & Neurosymbolic Pipeline Architecture
 
-This platform automates the extraction and validation of UK renewable energy proposals (Heat Pump and Solar PV installation quotes) from unstructured PDF documents into standardized, audit-ready JSON payloads.
+This platform automates the extraction, financial reconciliation, and multi-registry verification of UK renewable energy proposals (Heat Pump and Solar PV quotes) from unstructured PDF documents into standardized JSON payloads.
 
-Unlike basic single-pass LLM prompts, this system implements a **multi-pass neurosymbolic architecture**:
-1. **Pass 1 — Customer & Property Entity Extraction**: Isolates installer companies, customers, quote references, and full installation site addresses.
-2. **Pass 2 — Financials & BOM Reconciliation**: Extracts itemized bills of materials, applies UK Boiler Upgrade Scheme (BUS) grant deductions, and verifies VAT math consistency.
-3. **Pass 3 — Technical & MCS Specifications**: Extracts heat pump manufacturer, model names, nominal output (kW), design flow temperature (°C), seasonal efficiency (SCoP), and annual heat demand (kWh).
-4. **Symbolic Verification & Knowledge Graph Cross-Check**:
-   * **UK Postcodes.io**: Validates and normalizes outward/inward UK postal codes.
-   * **Companies House API**: Performs live business lookup, verifying company number and status.
-   * **UK Government Domestic EPC Register**: Queries live national energy performance certificates to verify property floor area and benchmark annual space heating demand.
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           RAW PROPOSAL PDF DOCUMENT                             │
+└────────────────────────────────────────┬────────────────────────────────────────┘
+                                         │
+                                         ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                     0. INGESTION & TEXT EXTRACTION LAYER                        │
+│   • Digital PDF Parser (pdfplumber)                                             │
+│   • OCR Fallback Engine (pytesseract + pdf2image / Poppler)                     │
+└────────────────────────────────────────┬────────────────────────────────────────┘
+                                         │
+               ┌─────────────────────────┴─────────────────────────┐
+               │                                                   │
+               ▼                                                   ▼
+┌───────────────────────────────┐               ┌─────────────────────────────────┐
+│ PASS 1: ENTITIES & CUSTOMER   │               │ PASS 2: FINANCIALS & BOM        │
+│ • Installer & Prepared By     │               │ • Itemized Materials & Labor    │
+│ • Customer Name, Phone, Email │               │ • BUS Grant Deductions (£7,500) │
+│ • Site Address & Postcode     │               │ • VAT Calculation & Subtotals   │
+│ • Quote Ref & Overall Value   │               │ • Net Customer Payable Total    │
+└──────────────┬────────────────┘               └────────────────┬────────────────┘
+               │                                                 │
+               └─────────────────────────┬───────────────────────┘
+                                         │
+                                         ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ PASS 3: TECHNICAL SPECIFICATIONS & MCS PERFORMANCE                              │
+│ • Heat Pump Manufacturer, Model, & System Type (ASHP / GSHP)                    │
+│ • Nominal Output (kW), Design Flow Temp (°C), SCoP Heating / Hot Water          │
+│ • Cylinder Capacity (L), Sound Power (dB), Emitter Types                        │
+└────────────────────────────────────────┬────────────────────────────────────────┘
+                                         │
+                                         ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ 4. DETERMINISTIC CLEANING & MATH RECONCILIATION LAYER                           │
+│ • Unit symbol normalization & string stripping                                  │
+│ • Currency, quantity & line total arithmetic validation                         │
+└────────────────────────────────────────┬────────────────────────────────────────┘
+                                         │
+                                         ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ 5. SYMBOLIC MULTI-REGISTRY VERIFICATION & ENRICHMENT                            │
+│ ┌────────────────────────┐  ┌────────────────────────┐  ┌─────────────────────┐ │
+│ │     Postcodes.io       │  │  Companies House API   │  │  UK Govt EPC Open   │ │
+│ │ • Postal verification  │  │ • Registered legal name│  │ • EPC certificate   │ │
+│ │ • Outward/Inward parse │  │ • Company active check │  │ • Floor area (m²)   │ │
+│ │ • Geo-coordinates      │  │ • Company registration │  │ • Heat demand kWh   │ │
+│ └────────────────────────┘  └────────────────────────┘  └─────────────────────┘ │
+└────────────────────────────────────────┬────────────────────────────────────────┘
+                                         │
+                                         ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ FINAL AUDIT-READY RENBEE JSON OUTPUT (<proposal>-output.json)                   │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 🔍 Detailed Step-by-Step Breakdown of Pipeline Passes
+
+| Pipeline Stage | Technology / Module | Inputs | Extraction Targets & Responsibilities | Output / Target Schema |
+| :--- | :--- | :--- | :--- | :--- |
+| **Stage 0: Document Ingestion** | `pdfplumber`, `pytesseract`, `pdf2image` | Unstructured PDF Proposal | Extracts raw text layout; executes OCR on scanned/image-based pages. | Clean text buffer & structured page segments |
+| **Pass 1: Customer & Site Entities** | Gemini Structured Output (`PASS1_SCHEMA`) | Document text | Isolates company identity, customer name, contact details, site address, quote reference, and validity date. | `customerInfo`, `proposalDetails` |
+| **Pass 2: Financials & BOM Reconciliation** | Gemini Structured Output (`PASS2_SCHEMA`) | Document text | Parses itemized materials, unit prices, quantities, labor hours/rates, BUS grant deductions, VAT amount, and total payable. | `quote` (materials, labor, grants, totals) |
+| **Pass 3: Technical & MCS Specs** | Gemini Structured Output (`PASS3_SCHEMA`) | Document text | Extracts heat pump manufacturer, model number, nominal capacity (kW), flow temperature (°C), SCoP rating, cylinder size. | `mcsPerformance`, `devicesToInstall`, `propertyDetails` |
+| **Stage 4: Normalization & Math Check** | Python Engine (`clean_value`, Math Assertions) | Raw extracted JSON | Strips unit annotations (`£`, `kW`, `°C`, `dB`, `kWh`), enforces numeric casting, and verifies that `Subtotal - Grant + VAT = Total`. | Cleaned & reconciled JSON payload |
+| **Stage 5: Registry Cross-Verification** | REST API Connectors | Normalized address, company, & postcode | Queries **Postcodes.io**, **Companies House API**, and **UK EPC Open Communities API** to enrich payload with official verified records. | `enrichment` (Companies House, EPC Register, Postcodes) |
 
 ---
 
@@ -100,12 +161,16 @@ To run the pipeline with your own credentials, configure the following external 
 ### Installation
 ```bash
 # 1. Clone repository & navigate to directory
-cd extrfiles
+git clone https://github.com/Renbee-Tech/warwick_docparse.git
+cd warwick_docparse
 
 # 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Launch application
+# 3. Configure environment variables (or copy .env.example)
+cp .env.example .env
+
+# 4. Launch application
 python server.py
 ```
 
@@ -113,27 +178,46 @@ Open your browser at **`http://localhost:8000`** to access the web application.
 
 ---
 
-## 5. Hosting Live on Google Cloud Platform (GCP)
+## 5. Deployment & Multi-Platform Hosting Guide
 
-Deploy to **Google Cloud Run** in minutes using **Google Cloud Shell**:
+The service is packaged with a production-ready **Dockerfile** and can be deployed anywhere containerized or Python web apps run.
 
-### Step 1: Open Google Cloud Shell
-Go to [console.cloud.google.com](https://console.cloud.google.com/) and open the **Cloud Shell** terminal (terminal icon in top-right).
+---
 
-### Step 2: Upload Deployment Package
-Click the three-dot menu (**More**) in the Cloud Shell top-right corner, select **Upload**, and upload `gcp_deploy.zip`.
+### Option A: Universal Docker Container (Any Server / Cloud)
 
-### Step 3: Unzip & Deploy
-Run the following commands in Cloud Shell:
+Run anywhere Docker is installed (local machine, EC2, Compute Engine, DigitalOcean, or private servers):
 
 ```bash
-# 1. Unzip the deployment files
-unzip -o gcp_deploy.zip -d renbee-app && cd renbee-app
+# 1. Build the Docker image
+docker build -t renbee-extractor .
 
-# 2. Set active project
-gcloud config set project renbee-docparse
+# 2. Run the container
+docker run -d \
+  -p 8080:8080 \
+  -e GEMINI_API_KEY="YOUR_GEMINI_API_KEY" \
+  -e EPC_API_KEY="YOUR_EPC_API_KEY" \
+  -e COMPANIES_HOUSE_API_KEY="YOUR_COMPANIES_HOUSE_KEY" \
+  --name renbee-app \
+  renbee-extractor
+```
 
-# 3. Build & Deploy to Google Cloud Run
+Access at `http://<your-server-ip>:8080`.
+
+---
+
+### Option B: Google Cloud Run (Serverless GCP)
+
+Deploy directly using **Google Cloud Shell**:
+
+1. Open **[Google Cloud Shell](https://console.cloud.google.com/)**.
+2. Upload `gcp_deploy.zip` or clone the repository.
+3. Run the deployment command:
+
+```bash
+# Set project & deploy
+gcloud config set project YOUR_GCP_PROJECT_ID
+
 gcloud run deploy renbee-extractor \
   --source . \
   --region europe-west2 \
@@ -144,15 +228,53 @@ gcloud run deploy renbee-extractor \
   --set-env-vars="GEMINI_API_KEY=YOUR_GEMINI_API_KEY,EPC_API_KEY=YOUR_EPC_API_KEY,COMPANIES_HOUSE_API_KEY=YOUR_COMPANIES_HOUSE_KEY"
 ```
 
-Once deployment completes, Cloud Run outputs your live public HTTPS URL:
-```
-https://renbee-extractor-730963128390.europe-west2.run.app
-```
+---
 
-**Live Production Deployment:** [https://renbee-extractor-730963128390.europe-west2.run.app](https://renbee-extractor-730963128390.europe-west2.run.app)
+### Option C: AWS (App Runner or ECS Fargate)
 
+1. **Push to Amazon ECR**:
+   ```bash
+   aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin <aws_account_id>.dkr.ecr.eu-west-2.amazonaws.com
+   docker tag renbee-extractor:latest <aws_account_id>.dkr.ecr.eu-west-2.amazonaws.com/renbee-extractor:latest
+   docker push <aws_account_id>.dkr.ecr.eu-west-2.amazonaws.com/renbee-extractor:latest
+   ```
+2. **Deploy on AWS App Runner**:
+   * Create a new Service -> Select **Container registry** -> **Amazon ECR**.
+   * Set Port to `8080`.
+   * Add Environment Variables (`GEMINI_API_KEY`, `EPC_API_KEY`, `COMPANIES_HOUSE_API_KEY`).
+   * Click **Deploy** to get an instant HTTPS URL.
 
 ---
+
+### Option D: One-Click PaaS (Render, Railway, Fly.io)
+
+1. **Connect Repository**: Link `https://github.com/Renbee-Tech/warwick_docparse.git` in Render / Railway / Fly.io.
+2. **Environment**: Select **Docker** (the platform will auto-detect the root `Dockerfile`).
+3. **Environment Variables**: Add your `GEMINI_API_KEY`, `EPC_API_KEY`, and `COMPANIES_HOUSE_API_KEY` in the dashboard settings.
+4. **Port**: Set listening port to `8080` (or leave default).
+
+---
+
+### Option E: Standard Linux VPS (Ubuntu / Debian / Debian-based Server)
+
+```bash
+# 1. Update system and install OCR & Poppler binaries
+sudo apt update && sudo apt install -y python3-pip python3-venv tesseract-ocr poppler-utils libgl1
+
+# 2. Clone repo & create virtual environment
+git clone https://github.com/Renbee-Tech/warwick_docparse.git /opt/renbee-app
+cd /opt/renbee-app
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# 3. Configure environment
+cp .env.example .env
+nano .env
+
+# 4. Run with Uvicorn (or manage with systemd / PM2)
+uvicorn server:app --host 0.0.0.0 --port 8080
+```
 
 ## 6. Dataset & Downstream System Integration
 
